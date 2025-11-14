@@ -23,6 +23,16 @@ node_modules/
 # OS specific
 .DS_Store
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
 # gemini-cli settings
 .gemini/
 
