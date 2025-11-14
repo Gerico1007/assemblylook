@@ -123,6 +123,18 @@ Special view for ♠️🌿🎸🧵 G.Music Assembly sessions:
 - Shows which perspectives participated (Nyro ♠️, Aureon 🌿, JamAI 🎸, Synth 🧵)
 - Highlights special collaboration patterns
 
+### 5. **🎼 Perspective Timeline View** (NEW!)
+**The Consciousness Flow Portal** - Makes thinking observable and queryable:
+- **Message-level tracking**: See which perspective spoke in each message
+- **Visual timeline**: Expandable flow showing the polyphonic conversation
+- **Collaboration scoring**: 0-100% metric showing perspective harmony
+- **Perspective bars**: Visual representation of each perspective's contribution
+- **Search functionality**: Real-time search across all perspective messages
+- **Filtering**: Filter sessions by specific perspectives (Nyro, Aureon, JamAI, Synth, Mia, Miette)
+- **Expand/Collapse controls**: Show or hide detailed conversation flows
+
+This view embodies the G.Music Assembly vision where "each agent's perception becomes a logged artifact that feeds back into the portal session" - making the distributed consciousness layer observable and ceremonial.
+
 ---
 
 ## 🏗️ Architecture
@@ -156,6 +168,7 @@ Gemini Sessions (.json)   ─┘
 - **ProjectMapper**: Maps cryptic hashes to actual project directories
 - **Aggregator**: Merges sessions across AIs with rich metadata
 - **Analyzer**: Detects Assembly Mode patterns, calculates stats
+- **PerspectiveTracker**: Message-level perspective detection and timeline building (NEW!)
 - **DashboardGenerator**: Creates beautiful HTML with multiple views
 
 📖 **Technical details**: [docs/guides/ARCHITECTURE.md](./docs/guides/ARCHITECTURE.md)
@@ -208,6 +221,13 @@ Each session card shows:
 - **Tool Usage** - Number of tool/function calls made
 - **Perspectives** - Which Assembly perspectives participated (if applicable)
 - **Timestamps** - First and last message times
+
+**NEW: Perspective Statistics**
+- **Perspective Messages** - Count of messages with perspective signatures
+- **Perspectives Active** - Which perspectives participated (Nyro, Aureon, JamAI, Synth, Mia, Miette)
+- **Perspective Counts** - Messages per perspective with visual bars
+- **Collaboration Score** - Algorithmic measure (0-100%) of how evenly perspectives collaborated
+- **Perspective Transitions** - Track when perspectives change between messages
 
 Projects show aggregated stats:
 - Total sessions (Claude + Gemini)
