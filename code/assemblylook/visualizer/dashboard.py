@@ -107,6 +107,7 @@ class DashboardGenerator:
             <button class="tab-btn" onclick="showView('date')">📅 By Date</button>
             <button class="tab-btn" onclick="showView('ai')">🤖 By AI</button>
             <button class="tab-btn" onclick="showView('assembly')">♠️🌿🎸🧵 Assembly Mode</button>
+            <button class="tab-btn" onclick="showView('timeline')">🎼 Perspective Timeline</button>
         </div>
 
         <div id="project-view" class="view-content active">
@@ -123,6 +124,10 @@ class DashboardGenerator:
 
         <div id="assembly-view" class="view-content">
             {self._generate_assembly_view(assembly_sessions)}
+        </div>
+
+        <div id="timeline-view" class="view-content">
+            {self._generate_timeline_view(sessions)}
         </div>
 
         <footer>
@@ -264,6 +269,158 @@ class DashboardGenerator:
 
             html += "</div>\n"
 
+        return html
+
+    def _generate_timeline_view(self, sessions: Dict[str, List[Dict[str, Any]]]) -> str:
+        """Generate Perspective Timeline view showing consciousness flow."""
+        all_sessions = sessions.get('claude', []) + sessions.get('gemini', [])
+
+        # Filter to sessions with perspective data
+        perspective_sessions = [
+            s for s in all_sessions
+            if s.get('perspective_stats', {}).get('perspective_messages', 0) > 0
+        ]
+
+        html = "<h2>🎼 Perspective Timeline - Consciousness Flow</h2>\n"
+
+        if not perspective_sessions:
+            html += "<p class='empty-state'>No perspective conversations detected yet. Start an Assembly Mode session to see the consciousness flow!</p>\n"
+        else:
+            html += f"<p class='timeline-intro'>Showing {len(perspective_sessions)} sessions with perspective participation</p>\n"
+
+            # Add controls
+            html += """
+            <div class='timeline-controls'>
+                <div class='search-box'>
+                    <input type='text' id='perspective-search' placeholder='🔍 Search perspectives...' oninput='searchPerspectives()'>
+                </div>
+                <div class='filter-buttons'>
+                    <button onclick='filterByPerspective("all")' class='filter-btn active'>All</button>
+                    <button onclick='filterByPerspective("nyro")' class='filter-btn'>♠️ Nyro</button>
+                    <button onclick='filterByPerspective("aureon")' class='filter-btn'>🌿 Aureon</button>
+                    <button onclick='filterByPerspective("jamai")' class='filter-btn'>🎸 JamAI</button>
+                    <button onclick='filterByPerspective("synth")' class='filter-btn'>🧵 Synth</button>
+                    <button onclick='filterByPerspective("mia")' class='filter-btn'>🧠 Mia</button>
+                    <button onclick='filterByPerspective("miette")' class='filter-btn'>🌸 Miette</button>
+                </div>
+                <div class='timeline-actions'>
+                    <button onclick='expandAllTimelines()' class='action-btn'>Expand All</button>
+                    <button onclick='collapseAllTimelines()' class='action-btn'>Collapse All</button>
+                </div>
+            </div>
+            """
+
+            html += "<div class='timeline-container'>\n"
+
+            for session in sorted(perspective_sessions, key=lambda s: s.get('first_timestamp', ''), reverse=True):
+                html += self._generate_timeline_session_card(session)
+
+            html += "</div>\n"
+
+        return html
+
+    def _generate_timeline_session_card(self, session: Dict[str, Any]) -> str:
+        """Generate a detailed timeline card for a session with perspective flow."""
+        project_name = session.get('project_info', {}).get('name', 'unknown')
+        ai_type = session.get('ai_type', 'unknown')
+        first_timestamp = session.get('first_timestamp', 'Unknown')
+
+        # Format timestamp
+        if first_timestamp and 'T' in first_timestamp:
+            try:
+                dt = datetime.fromisoformat(first_timestamp.replace('Z', '+00:00'))
+                first_timestamp = dt.strftime('%Y-%m-%d %H:%M')
+            except:
+                pass
+
+        stats = session.get('perspective_stats', {})
+        timeline = session.get('perspective_timeline', [])
+
+        perspectives_active = stats.get('perspectives_active', [])
+        perspective_counts = stats.get('perspective_counts', {})
+        collaboration_score = stats.get('collaboration_score', 0)
+        perspective_messages = stats.get('perspective_messages', 0)
+
+        # Perspective icons
+        perspective_icons = {
+            'nyro': '♠️',
+            'aureon': '🌿',
+            'jamai': '🎸',
+            'synth': '🧵',
+            'mia': '🧠',
+            'miette': '🌸',
+        }
+
+        # Generate perspective bars (showing relative contribution)
+        perspective_bars = ""
+        if perspective_counts:
+            max_count = max(perspective_counts.values())
+            for perspective in perspectives_active:
+                count = perspective_counts.get(perspective, 0)
+                percentage = (count / max_count * 100) if max_count > 0 else 0
+                icon = perspective_icons.get(perspective, '•')
+                perspective_bars += f"""
+                <div class="perspective-bar">
+                    <span class="perspective-label">{icon} {perspective.capitalize()}</span>
+                    <div class="bar-container">
+                        <div class="bar-fill perspective-{perspective}" style="width: {percentage}%"></div>
+                    </div>
+                    <span class="perspective-count">{count} messages</span>
+                </div>
+                """
+
+        # Generate timeline flow (showing message-by-message perspective changes)
+        timeline_flow = "<div class='timeline-flow'>\n"
+        for entry in timeline:
+            if entry['has_perspective']:
+                icon = entry['perspective_icon']
+                perspective = entry['perspective']
+                preview = entry['content_preview']
+                timeline_flow += f"""
+                <div class="timeline-entry perspective-{perspective}">
+                    <div class="timeline-marker">{icon}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-perspective-name">{entry['perspective_name']}</div>
+                        <div class="timeline-text">{preview}</div>
+                    </div>
+                </div>
+                """
+        timeline_flow += "</div>\n"
+
+        # Build the card
+        html = f"""
+        <div class="timeline-session-card {ai_type}">
+            <div class="timeline-header">
+                <div class="timeline-title">
+                    <span class="ai-badge {ai_type}">{ai_type}</span>
+                    <span class="project-name">{project_name}</span>
+                    <span class="timestamp">{first_timestamp}</span>
+                </div>
+                <div class="collaboration-score-badge">
+                    <span class="score-label">Collaboration</span>
+                    <span class="score-value">{int(collaboration_score * 100)}%</span>
+                </div>
+            </div>
+
+            <div class="perspective-stats-section">
+                <div class="stat-item">
+                    <strong>{perspective_messages}</strong> perspective messages
+                </div>
+                <div class="stat-item">
+                    <strong>{len(perspectives_active)}</strong> perspectives active
+                </div>
+            </div>
+
+            <div class="perspective-bars-section">
+                {perspective_bars}
+            </div>
+
+            <details class="timeline-details">
+                <summary class="timeline-summary">Show full conversation flow ({len([e for e in timeline if e['has_perspective']])} perspective entries)</summary>
+                {timeline_flow}
+            </details>
+        </div>
+        """
         return html
 
     def _generate_session_card(self, session: Dict[str, Any], compact: bool = False, show_perspectives: bool = False) -> str:
@@ -639,6 +796,310 @@ class DashboardGenerator:
             font-size: 0.9em;
         }
 
+        /* Timeline View Styles */
+        .timeline-intro {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .timeline-controls {
+            background: #ffffff88;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1em;
+            font-family: inherit;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #ffffff;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn, .action-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: #ffffff;
+            color: #333;
+            font-family: inherit;
+            font-size: 0.9em;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .action-btn:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .timeline-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .action-btn:hover {
+            background: #5568d3;
+        }
+
+        .timeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .timeline-session-card {
+            background: #ffffff88;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #ddd;
+        }
+
+        .timeline-session-card.claude {
+            border-left-color: #667eea;
+        }
+
+        .timeline-session-card.gemini {
+            border-left-color: #f5576c;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .timeline-title {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .collaboration-score-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .score-label {
+            font-size: 0.75em;
+            opacity: 0.9;
+        }
+
+        .score-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .perspective-stats-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #ffffff44;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .stat-item strong {
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+
+        .perspective-bars-section {
+            margin-bottom: 20px;
+        }
+
+        .perspective-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .perspective-label {
+            min-width: 120px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .bar-fill.perspective-nyro {
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+        }
+
+        .bar-fill.perspective-aureon {
+            background: linear-gradient(90deg, #166534, #22c55e);
+        }
+
+        .bar-fill.perspective-jamai {
+            background: linear-gradient(90deg, #9333ea, #c084fc);
+        }
+
+        .bar-fill.perspective-synth {
+            background: linear-gradient(90deg, #ea580c, #fb923c);
+        }
+
+        .bar-fill.perspective-mia {
+            background: linear-gradient(90deg, #7c3aed, #a78bfa);
+        }
+
+        .bar-fill.perspective-miette {
+            background: linear-gradient(90deg, #db2777, #f9a8d4);
+        }
+
+        .perspective-count {
+            min-width: 100px;
+            text-align: right;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .timeline-details {
+            margin-top: 15px;
+        }
+
+        .timeline-summary {
+            cursor: pointer;
+            padding: 12px;
+            background: #ffffff66;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #667eea;
+            user-select: none;
+        }
+
+        .timeline-summary:hover {
+            background: #ffffff99;
+        }
+
+        .timeline-flow {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px;
+            background: #ffffff33;
+            border-radius: 8px;
+        }
+
+        .timeline-entry {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #ffffff88;
+            border-radius: 8px;
+            border-left: 3px solid #ddd;
+        }
+
+        .timeline-entry.perspective-nyro {
+            border-left-color: #3b82f6;
+        }
+
+        .timeline-entry.perspective-aureon {
+            border-left-color: #22c55e;
+        }
+
+        .timeline-entry.perspective-jamai {
+            border-left-color: #c084fc;
+        }
+
+        .timeline-entry.perspective-synth {
+            border-left-color: #fb923c;
+        }
+
+        .timeline-entry.perspective-mia {
+            border-left-color: #a78bfa;
+        }
+
+        .timeline-entry.perspective-miette {
+            border-left-color: #f9a8d4;
+        }
+
+        .timeline-marker {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-perspective-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .timeline-text {
+            color: #444;
+            line-height: 1.5;
+            font-size: 0.9em;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .projects-grid {
@@ -651,6 +1112,20 @@ class DashboardGenerator:
 
             h1 {
                 font-size: 1.8em;
+            }
+
+            .timeline-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .perspective-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .bar-container {
+                width: 100%;
             }
         }
     </style>
@@ -676,6 +1151,53 @@ class DashboardGenerator:
 
             // Mark clicked tab as active
             event.target.classList.add('active');
+        }
+
+        // Search functionality across perspectives
+        function searchPerspectives() {
+            const searchTerm = document.getElementById('perspective-search')?.value.toLowerCase() || '';
+            const timelineEntries = document.querySelectorAll('.timeline-entry');
+
+            timelineEntries.forEach(entry => {
+                const text = entry.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    entry.style.display = 'flex';
+                } else {
+                    entry.style.display = 'none';
+                }
+            });
+        }
+
+        // Filter by perspective
+        function filterByPerspective(perspective) {
+            const timelineCards = document.querySelectorAll('.timeline-session-card');
+
+            timelineCards.forEach(card => {
+                if (perspective === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    const stats = card.querySelector('.perspective-bars-section');
+                    if (stats && stats.textContent.toLowerCase().includes(perspective.toLowerCase())) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // Expand all timelines
+        function expandAllTimelines() {
+            document.querySelectorAll('.timeline-details').forEach(details => {
+                details.open = true;
+            });
+        }
+
+        // Collapse all timelines
+        function collapseAllTimelines() {
+            document.querySelectorAll('.timeline-details').forEach(details => {
+                details.open = false;
+            });
         }
     </script>
 """

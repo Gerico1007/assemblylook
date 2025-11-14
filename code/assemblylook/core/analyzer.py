@@ -5,6 +5,7 @@ Analyzer - Session analysis including Assembly mode detection and statistics
 
 import re
 from typing import Dict, List, Any, Optional
+from assemblylook.core.perspective_tracker import PerspectiveTracker
 
 
 class SessionAnalyzer:
@@ -36,6 +37,8 @@ class SessionAnalyzer:
             name: re.compile(pattern, re.IGNORECASE)
             for name, pattern in self.PERSPECTIVE_PATTERNS.items()
         }
+        # Initialize perspective tracker for granular analysis
+        self.perspective_tracker = PerspectiveTracker()
 
     def analyze_session(self, session: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -214,14 +217,19 @@ class SessionAnalyzer:
             sessions: Session data from parser
 
         Returns:
-            Sessions enriched with 'analysis' field
+            Sessions enriched with 'analysis', 'perspective_timeline', and 'perspective_stats' fields
         """
         enriched = {'claude': [], 'gemini': []}
 
         for ai_type in ['claude', 'gemini']:
             for session in sessions.get(ai_type, []):
+                # Add basic analysis
                 analysis = self.analyze_session(session)
                 session['analysis'] = analysis
+
+                # Add granular perspective tracking
+                session = self.perspective_tracker.enrich_session_with_perspective_timeline(session)
+
                 enriched[ai_type].append(session)
 
         return enriched
