@@ -85,7 +85,11 @@ cd assemblylook
 
 ## Step 4: Set Up Python Environment
 
-AssemblyLook uses pure Python with no external dependencies, so no virtualenv is needed.
+AssemblyLook uses Python with a few dependencies (markdown), so no virtualenv is needed.
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Verify Python Installation
 
@@ -159,7 +163,7 @@ If you use Gemini CLI, you need the prettifier script:
 
 ```bash
 # Ensure the Gemini converter exists
-ls -la ~/.shortcuts/gemini_converter_tool/code/Gemini\ CLI\ logs\ prettifier/pretty_print_chat.py
+ls -la code/Gemini\ CLI\ logs\ prettifier/pretty_print_chat.py
 ```
 
 If it doesn't exist, the AssemblyLook script will notify you and continue with Claude-only support.

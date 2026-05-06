@@ -45,6 +45,9 @@ cd ~/workspace
 git clone https://github.com/Gerico1007/assemblylook.git
 cd assemblylook
 
+# Install dependencies
+pip install -r requirements.txt
+
 # Set up environment
 echo 'export ASSEMBLYLOOK_PORT=8000' >> ~/.bashrc
 source ~/.bashrc
